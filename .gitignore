@@ -1,0 +1,45 @@
+# ==============================================================================
+# CONFIGURAZIONE .GITIGNORE
+# Progetto: AgroSmart Advisor
+# Descrizione: Elenco dei file e delle directory da escludere dal versionamento.
+# ==============================================================================
+
+# --- 1. Ambienti Virtuali e Dipendenze ---
+# Esclusione delle directory contenenti le librerie Python installate localmente.
+# Queste devono essere reinstallate tramite requirements.txt, non caricate.
+venv/
+env/
+.venv/
+.env
+
+# --- 2. File di Compilazione e Cache Python ---
+# Bytecode e file di cache generati automaticamente dall'interprete a runtime.
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- 3. Configurazioni dell'Ambiente di Sviluppo (IDE) ---
+# File di impostazioni personali dell'editor (VS Code, PyCharm, ecc.).
+.vscode/
+.idea/
+
+# --- 4. Artefatti Generati dall'Esecuzione (Output di Progetto) ---
+# Si escludono i risultati generati dagli script per garantire che il repository
+# contenga solo il codice sorgente e i dati grezzi originali.
+
+# Immagini grafiche (Alberi decisionali, Matrici di confusione, Plot)
+*.png
+*.jpg
+*.jpeg
+
+# Report testuali generati automaticamente dalle metriche di valutazione
+report_classificazione_finale.txt
+
+# Dataset intermedi processati (Generati dallo script di pulizia)
+# Si mantiene solo il dataset originale per garantire la riproducibilità del pre-processing.
+Train_Dataset_Clean.csv
+
+# --- 5. File di Sistema Operativo ---
+# File temporanei di indicizzazione o anteprima creati dal sistema operativo.
+.DS_Store
+Thumbs.db
