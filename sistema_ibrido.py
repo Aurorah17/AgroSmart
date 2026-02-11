@@ -74,7 +74,6 @@ class AgroSmartAI:
         # Nota: Prolog vuole i numeri, assicuriamoci siano formattati bene
         assert_query = f"assertz(dati_lotto({lotto_id}, {n}, {p}, {k}, {ph}, {rain}, {temp}))"
         list(self.prolog.query(assert_query))
-        
         # Query di validazione
         # Chiediamo: "valida_raccomandazione(lotto_corrente, pianta_predetta)?"
         print(f"[LOGIC] Validazione logica in corso per '{prediction_name}'...")
@@ -86,7 +85,7 @@ class AgroSmartAI:
             print(">>> ESITO: VALIDATO. La coltura è sicura e coerente con i vincoli ambientali.")
         else:
             print(">>> ESITO: ATTENZIONE! La raccomandazione è stata RESPINTA dalla Knowledge Base.")
-            print("    Motivo: Violazione di vincoli biologici (es. pH errato o carenza idrica).")
+            print("    Motivo: Violazione di vincoli biologici.")
 
             # --- INTEGRAZIONE DRONE ---
             print("\n[ACTION] Avvio procedura di ispezione automatica...")

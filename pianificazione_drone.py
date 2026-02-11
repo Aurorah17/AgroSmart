@@ -1,4 +1,9 @@
 import heapq
+from pyswip import Prolog
+
+# Inizializzazione Prolog
+prolog = Prolog()
+prolog.consult("kb_agricola.pl")
 
 # --- 1. DEFINIZIONE DELLA MAPPA (Grafo) ---
 # Rappresentiamo l'azienda agricola come un grafo.
@@ -36,8 +41,6 @@ def a_star_search(grafo, start, goal, h):
     heapq.heappush(frontiera, (0 + h[start], 0, start, [start]))
     
     visitati = set()
-    
-    print(f"Avvio ricerca percorso da '{start}' a '{goal}'...")
 
     while frontiera:
         # Prendo il nodo con F minore
@@ -51,6 +54,14 @@ def a_star_search(grafo, start, goal, h):
             
             # Espando i vicini
             for vicino, costo_arco in grafo.get(corrente, []):
+                # Chiediamo al Prolog se il drone può passare sul vicino
+                query = f"attraversabile('{vicino}')"
+                is_valid = list(prolog.query(query))
+                
+                if not is_valid:
+                    print(f" [!] PRUNING: Nodo '{vicino}' scartato (Vincolo KB)")
+                    continue # Salta questo nodo e non lo aggiunge alla frontiera
+                
                 nuovo_g = g + costo_arco
                 nuovo_f = nuovo_g + h.get(vicino, 0)
                 heapq.heappush(frontiera, (nuovo_f, nuovo_g, vicino, percorso + [vicino]))
