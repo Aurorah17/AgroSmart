@@ -1,64 +1,82 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import cross_val_score, KFold
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder
+from sklearn.svm import SVC
+from sklearn.naive_bayes import GaussianNB
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+import os
 
-# Configurazione per la riproducibilità dei risultati
-RANDOM_STATE = 42
+# Creazione cartella output se non esiste
+OUTPUT_DIR = 'grafici_per_relazione'
+if not os.path.exists(OUTPUT_DIR):
+    os.makedirs(OUTPUT_DIR)
 
 def main():
-    # 1. Caricamento del Dataset
+    print("--- VALUTAZIONE COMPARATIVA MODELLI ---")
+    
+    # 1. Caricamento Dati
     try:
-        df = pd.read_csv('Train Dataset.csv')
+        df = pd.read_csv('Train_Dataset_Clean.csv')
     except FileNotFoundError:
-        print("Errore: Il file 'Train Dataset.csv' non è stato trovato nella directory corrente.")
+        print("[ERRORE] File 'Train_Dataset_Clean.csv' non trovato. Assicurati di averlo nella cartella.")
         return
 
-    # 2. Pre-processing e Pulizia Dati
-    # Rimozione della colonna indice 'Unnamed: 0' in quanto non porta contenuto informativo
-    if 'Unnamed: 0' in df.columns:
-        df = df.drop(columns=['Unnamed: 0'])
-
-    # Separazione delle feature (X) e della variabile target (y)
     X = df.drop(columns=['Crop'])
     y = df['Crop']
-
-    # Encoding della variabile target (conversione da etichette testuali a valori numerici)
+    
+    # 2. Encoding (Corretto: usiamo un nome univoco)
     le = LabelEncoder()
-    y_encoded = le.fit_transform(y)
-
-    # 3. Definizione dei Modelli di Apprendimento
-    # Si confrontano un modello interpretabile (Decision Tree) e un modello di ensemble (Random Forest)
-    models = {
-        "Decision Tree": DecisionTreeClassifier(random_state=RANDOM_STATE),
-        "Random Forest": RandomForestClassifier(n_estimators=100, random_state=RANDOM_STATE)
-    }
-
-    # 4. Configurazione della Valutazione Sperimentale
-    # Adozione della 10-Fold Cross-Validation per ottenere una stima robusta delle prestazioni
-    # e minimizzare la varianza dovuta alla selezione del set di training/test.
-    kf = KFold(n_splits=10, shuffle=True, random_state=RANDOM_STATE)
-
-    print("Avvio della valutazione comparativa dei modelli (10-Fold Cross-Validation)...")
-    print("-" * 70)
-
-    # 5. Esecuzione dei Test
-    for name, model in models.items():
-        # Calcolo dell'accuratezza per ogni fold
-        scores = cross_val_score(model, X, y_encoded, cv=kf, scoring='accuracy')
+    y_encoded = le.fit_transform(y)  # Qui era l'errore: ora la chiamo y_encoded coerentemente
+    
+    # 3. Scaling per SVM (necessario per modelli basati su distanze)
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    # 4. Definizione Modelli
+    models = [
+        ('Decision Tree', DecisionTreeClassifier(random_state=42)),
+        ('Random Forest', RandomForestClassifier(n_estimators=50, random_state=42)),
+        ('Naive Bayes', GaussianNB()),
+        ('SVM (RBF)', SVC(kernel='rbf', probability=True))
+    ]
+    
+    results = []
+    names = []
+    
+    print(f"{'Modello':<20} | {'Accuratezza':<10} | {'Std Dev':<10}")
+    print("-" * 45)
+    
+    # 5. Cross Validation
+    kfold = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+    
+    for name, model in models:
+        # SVM richiede dati scalati, gli altri usano X originale (o scalato, va bene uguale per alberi)
+        data_to_use = X_scaled if name == 'SVM (RBF)' else X
         
-        # Stampa dei risultati statistici: Media e Deviazione Standard
-        print(f"Modello: {name}")
-        print(f"   Accuratezza Media:      {scores.mean():.4f}")
-        print(f"   Deviazione Standard:    {scores.std():.4f}")
-        print("-" * 70)
+        # Qui usiamo 'y_encoded' che ora è definita correttamente sopra
+        cv_results = cross_val_score(model, data_to_use, y_encoded, cv=kfold, scoring='accuracy')
+        
+        results.append(cv_results)
+        names.append(name)
+        
+        print(f"{name:<20} | {cv_results.mean():.4f}     | {cv_results.std():.4f}")
 
-    # 6. Salvataggio del dataset pre-processato
-    # Il dataset pulito verrà utilizzato successivamente per l'estrazione della Knowledge Base
-    df.to_csv('Train_Dataset_Clean.csv', index=False)
-    print("Pre-processing completato. Il dataset pulito è stato salvato come 'Train_Dataset_Clean.csv'.")
+    # 6. Generazione Grafico
+    plt.figure(figsize=(12, 6))
+    sns.boxplot(data=results, palette="Set3")
+    plt.xticks(range(4), names)
+    plt.title('Confronto Prestazioni Modelli (10-Fold CV)', fontsize=15)
+    plt.ylabel('Accuratezza')
+    plt.xlabel('Algoritmo')
+    
+    outfile = os.path.join(OUTPUT_DIR, '7_confronto_modelli.png')
+    plt.savefig(outfile, dpi=300)
+    plt.close() # Chiude la figura per liberare memoria
+    print(f"\n[GRAPH] Grafico comparativo salvato in: {outfile}")
 
 if __name__ == "__main__":
     main()

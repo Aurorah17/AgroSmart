@@ -4,20 +4,23 @@ import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn.preprocessing import LabelEncoder
+import os
 
 # --- CONFIGURAZIONE ---
-TRAIN_FILE = 'Train_Dataset_Clean.csv' # Il file pulito che abbiamo creato all'inizio
-TEST_FILE = 'test dataset.csv'         # Il file "vergine" per la valutazione finale
+TRAIN_FILE = 'Train_Dataset_Clean.csv'
+TEST_FILE = 'test dataset.csv'
+OUTPUT_DIR = 'grafici_per_relazione'  # Cartella di destinazione
+
+# Assicuriamoci che la cartella esista
+if not os.path.exists(OUTPUT_DIR):
+    os.makedirs(OUTPUT_DIR)
 
 def main():
     print("--- AVVIO VALUTAZIONE FINALE (HOLD-OUT TEST) ---")
 
     # 1. Caricamento dei Dataset
     try:
-        # Carichiamo il Training Set (usato per l'addestramento)
         df_train = pd.read_csv(TRAIN_FILE)
-        
-        # Carichiamo il Test Set (usato SOLO per la verifica finale)
         df_test = pd.read_csv(TEST_FILE)
         
         print(f"[INFO] Dataset caricati.")
@@ -28,58 +31,52 @@ def main():
         print(f"[ERROR] File non trovato: {e}")
         return
 
-    # 2. Pre-processing e Allineamento Dati
-    # Rimuoviamo colonne inutili se presenti (es. indici o etichette numeriche)
+    # 2. Pre-processing
     for df in [df_train, df_test]:
         if 'Unnamed: 0' in df.columns:
             df.drop(columns=['Unnamed: 0'], inplace=True)
 
-    # Separazione Feature (X) e Target (y)
     X_train = df_train.drop(columns=['Crop'])
     y_train = df_train['Crop']
 
     X_test = df_test.drop(columns=['Crop'])
     y_test = df_test['Crop']
 
-    # 3. Encoding delle Etichette (Label Encoding)
-    # IMPORTANTE: L'encoder deve imparare le classi dal TRAIN e applicarle al TEST
-    # per garantire che "rice" sia sempre lo stesso numero in entrambi i file.
+    # 3. Encoding
     le = LabelEncoder()
     y_train_encoded = le.fit_transform(y_train)
     
-    # Gestione di eventuali classi nel test set non presenti nel training (raro ma possibile)
+    # Gestione classi test
     try:
         y_test_encoded = le.transform(y_test)
     except ValueError as e:
-        print("[WARNING] Il Test Set contiene classi non viste nel Training Set. Filtraggio necessario.")
-        # (In un caso reale si gestirebbe diversamente, qui procediamo assumendo consistenza)
+        print("[WARNING] Il Test Set contiene classi non viste nel Training Set.")
         return
 
-    # 4. Addestramento del Modello Finale
-    # Utilizziamo l'Albero di Decisione con gli stessi parametri usati nella Cross-Validation
+    # 4. Addestramento
     print("[INFO] Addestramento del Decision Tree sul 100% del Training Set...")
     model = DecisionTreeClassifier(random_state=42)
     model.fit(X_train, y_train_encoded)
 
-    # 5. Predizione sui dati "Nuovi" (Test Set)
+    # 5. Predizione
     print("[INFO] Calcolo delle predizioni sul Test Set...")
     y_pred = model.predict(X_test)
 
-    # 6. Calcolo delle Metriche di Performance
+    # 6. Metriche
     accuracy = accuracy_score(y_test_encoded, y_pred)
     print("-" * 50)
     print(f"ACCURATEZZA FINALE (Test Set): {accuracy:.4f}")
     print("-" * 50)
 
-    # Generazione del Report di Classificazione (Precision, Recall, F1-Score per ogni pianta)
+    # --- SALVATAGGIO REPORT (TXT) ---
     report = classification_report(y_test_encoded, y_pred, target_names=le.classes_)
-    # Salviamo il report in un file di testo per la documentazione
-    with open("report_classificazione_finale.txt", "w") as f:
+    
+    report_path = os.path.join(OUTPUT_DIR, "report_classificazione_finale.txt")
+    with open(report_path, "w") as f:
         f.write(report)
-    print("[INFO] Report dettagliato salvato in 'report_classificazione_finale.txt'.")
+    print(f"[INFO] Report salvato in '{report_path}'.")
 
-    # 7. Generazione e Salvataggio della Matrice di Confusione
-    # Questo grafico mostra DOVE il modello sbaglia (quali piante confonde)
+    # --- SALVATAGGIO MATRICE DI CONFUSIONE (PNG) ---
     cm = confusion_matrix(y_test_encoded, y_pred)
     
     plt.figure(figsize=(14, 12))
@@ -90,9 +87,11 @@ def main():
     plt.ylabel('Classe Reale (Verità)')
     plt.xlabel('Classe Predetta dal Modello')
     
-    output_img = 'matrice_confusione_finale.png'
-    plt.savefig(output_img)
-    print(f"[INFO] Grafico salvato come '{output_img}'.")
+    img_path = os.path.join(OUTPUT_DIR, 'matrice_confusione_finale.png')
+    plt.savefig(img_path)
+    plt.close() # Chiude la figura
+    
+    print(f"[INFO] Grafico salvato in '{img_path}'.")
     print("--- VALUTAZIONE COMPLETATA ---")
 
 if __name__ == "__main__":

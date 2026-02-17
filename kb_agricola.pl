@@ -1,14 +1,12 @@
 % ==============================================================================
 % AGRO-SMART ADVISOR: KNOWLEDGE BASE (Prolog)
-% Autori: [Aurora Pesare & Fabrizio Stimolo]
-% Descrizione: Base di conoscenza per la validazione logica
 % ==============================================================================
 
 % --- DICHIARAZIONE FATTI DINAMICI ---
-% Struttura: dati_lotto(ID, N, P, K, PH, Rainfall, Temperature).
 :- dynamic dati_lotto/7.
 
 % --- 1. ONTOLOGIA DELLE COLTURE ---
+% Gerarchia: categoria(NomeColtura, Famiglia).
 categoria(rice, cereale).
 categoria(maize, cereale).
 categoria(chickpea, leguminosa).
@@ -33,61 +31,40 @@ categoria(jute, industriale).
 categoria(coffee, industriale).
 
 % --- 2. REGOLE DI DOMINIO (Background Knowledge) ---
+terreno_acido(ID) :- dati_lotto(ID, _, _, _, PH, _, _), PH < 5.5.
+terreno_alcalino(ID) :- dati_lotto(ID, _, _, _, PH, _, _), PH > 7.5.
+terreno_arido(ID) :- dati_lotto(ID, _, _, _, _, Rain, _), Rain < 400.
+carenza_azoto(ID) :- dati_lotto(ID, N, _, _, _, _, _), N < 20.
+clima_freddo(ID) :- dati_lotto(ID, _, _, _, _, _, Temp), Temp < 15.
 
-% Regola: Terreno ACIDO (pH < 5.5)
-terreno_acido(ID) :-
-    dati_lotto(ID, _, _, _, PH, _, _),
-    PH < 5.5.
-
-% Regola: Terreno ALCALINO (pH > 7.5)
-terreno_alcalino(ID) :-
-    dati_lotto(ID, _, _, _, PH, _, _),
-    PH > 7.5.
-
-% Regola: Terreno ARIDO (Pioggia < 400mm)
-terreno_arido(ID) :-
-    dati_lotto(ID, _, _, _, _, Rain, _),
-    Rain < 400.
-
-% Regola: Terreno POVERO DI AZOTO (N < 20)
-carenza_azoto(ID) :-
-    dati_lotto(ID, N, _, _, _, _, _),
-    N < 20.
-
-% Regola: CLIMA FREDDO (Temp < 15°C)
-clima_freddo(ID) :-
-    dati_lotto(ID, _, _, _, _, _, Temp),
-    Temp < 15.
-
-% --- 3. REGOLE DI VALIDAZIONE (Constraint Checking) ---
-
-% VINCOLO 1: Riso e Juta richiedono molta acqua.
+% --- 3. REGOLE DI INCOMPATIBILITÀ (Constraint Checking) ---
 incompatibile(ID, rice) :- terreno_arido(ID).
 incompatibile(ID, jute) :- terreno_arido(ID).
-
-% VINCOLO 2: Legumi e Agrumi (Orange) soffrono la acidità.
 incompatibile(ID, Pianta) :- categoria(Pianta, leguminosa), terreno_acido(ID).
 incompatibile(ID, orange) :- terreno_acido(ID).
-
-% VINCOLO 3: Il Caffè odia i terreni alcalini.
 incompatibile(ID, coffee) :- terreno_alcalino(ID).
-
-% VINCOLO 4: Mais e Cotone richiedono molto Azoto.
 incompatibile(ID, maize)  :- carenza_azoto(ID).
 incompatibile(ID, cotton) :- carenza_azoto(ID).
+incompatibile(ID, Pianta) :- categoria(Pianta, frutto_tropicale), clima_freddo(ID).
 
-% VINCOLO 5: Le piante tropicali soffrono il freddo.
-incompatibile(ID, Pianta) :- 
-    categoria(Pianta, frutto_tropicale), 
-    clima_freddo(ID).
+% --- 4. INTERFACCE DI RAGIONAMENTO ---
 
-% --- 4. INTERFACCIA DI VALUTAZIONE ---
+% A. Validazione Semplice
 valida_raccomandazione(ID, Pianta) :-
     \+ incompatibile(ID, Pianta).
 
-% --- VINCOLI SPAZIALI (Per il Pruning di A*) ---
-% Simuliamo una zona dove il drone non può passare
-no_fly_zone('Lotto_B').
+% B. Semantic Recovery (Suggerimento Alternativo)
+% Se la pianta P suggerita è incompatibile, trova una pianta A che:
+% 1. Appartiene alla stessa categoria di P (es. entrambi cereali)
+% 2. NON è incompatibile con il terreno
+% 3. È diversa da P
+suggerisci_alternativa(ID, PiantaScartata, Alternativa) :-
+    incompatibile(ID, PiantaScartata),          % Assicuriamoci che la prima sia davvero vietata
+    categoria(PiantaScartata, Categoria),       % Prendi la categoria (es. cereale)
+    categoria(Alternativa, Categoria),          % Trova un'altra pianta della stessa categoria
+    PiantaScartata \= Alternativa,              % Che non sia la stessa
+    \+ incompatibile(ID, Alternativa).          % E che sia valida per questo terreno
 
-% Un nodo è attraversabile solo se NON è in una no_fly_zone
+% --- VINCOLI SPAZIALI (Per A*) ---
+no_fly_zone('Lotto_B').
 attraversabile(Nodo) :- \+ no_fly_zone(Nodo).
