@@ -142,36 +142,36 @@ def plot_learning_curve_graph(df):
 # 4. VISUALIZZAZIONE GRAFO RETE BAYESIANA
 # ==============================================================================
 def plot_rete_bayesiana():
-    print("\n--- Generazione Grafico 4: Struttura Rete Bayesiana ---")
-    # Definiamo manualmente la struttura causale (la stessa usata in diagnosi_bayesiana.py)
-    # Archi diretti: Causa -> Effetto
+    print("\n--- Generazione Grafico 4: Struttura Rete Bayesiana (Causale) ---")
+    
+    # Nuovi archi che riflettono la logica complessa
     archi = [
-        ('Presenza_Malattia', 'Macchie_Fogliari'),
-        ('Presenza_Malattia', 'Ingiallimento_Bordi'),
-        ('Presenza_Malattia', 'Appassimento_Precoce')
+        ('Pioggia', 'Stress_Idrico'),
+        ('Umidità', 'Presenza_Malattia'),
+        ('Stress_Idrico', 'Ingiallimento'),     # Causa 1 del giallo
+        ('Presenza_Malattia', 'Ingiallimento'), # Causa 2 del giallo
+        ('Presenza_Malattia', 'Macchie_Foglie')
     ]
     
-    # Creazione del grafo diretto
     G = nx.DiGraph()
     G.add_edges_from(archi)
 
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(10, 7))
     
-    # Algoritmo per disporre i nodi in modo che la "causa" stia in alto
-    pos = nx.spring_layout(G, seed=42) 
+    # Layout gerarchico manuale per chiarezza
+    pos = {
+        'Pioggia': (0, 2), 'Umidità': (2, 2),            # Livello Cause (Alto)
+        'Stress_Idrico': (0, 1), 'Presenza_Malattia': (2, 1), # Livello Stati (Medio)
+        'Ingiallimento': (1, 0), 'Macchie_Foglie': (3, 0)     # Livello Sintomi (Basso)
+    }
 
-    # Disegno dei nodi (cerchi)
-    nx.draw_networkx_nodes(G, pos, node_size=4000, node_color='lightblue', edgecolors='navy')
+    # Disegno
+    nx.draw_networkx_nodes(G, pos, node_size=3500, node_color='lightblue', edgecolors='navy')
+    nx.draw_networkx_labels(G, pos, font_size=9, font_weight='bold')
+    nx.draw_networkx_edges(G, pos, edgelist=archi, edge_color='gray', arrows=True, arrowsize=20, width=2)
     
-    # Disegno delle etichette (testo dentro i nodi)
-    nx.draw_networkx_labels(G, pos, font_size=9, font_weight='bold', font_color='black')
-    
-    # Disegno degli archi (frecce)
-    nx.draw_networkx_edges(G, pos, edgelist=archi, edge_color='gray', arrows=True, arrowsize=25, width=2)
-
-    plt.title("Struttura della Conoscenza Probabilistica (Rete Bayesiana)", fontsize=14)
-    plt.axis('off') # Nasconde gli assi cartesiani che qui non servono
-    plt.tight_layout()
+    plt.title("Rete Bayesiana Causale: Diagnosi Differenziale", fontsize=14)
+    plt.axis('off')
 
     nome_file = os.path.join(CARTELLA_OUTPUT, '4_rete_bayesiana_grafo.png')
     plt.savefig(nome_file, dpi=300)

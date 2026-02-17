@@ -98,19 +98,39 @@ class AgroSmartAI:
                 print(f"         Distanza stimata: {costo} metri.")
                 print("         [DRONE] Arrivo a destinazione. Avvio scansione visiva...")
 
-                # --- SIMULAZIONE DIAGNOSI BAYESIANA ---
-                # Simuliamo che il drone osservi dei sintomi: Macchie SI, Giallo SI
-                print("\n[BAYES] Analisi Probabilistica Salute Pianta")
-                print("        Sintomi rilevati: Macchie Foglie [SI], Ingiallimento [SI]")
+                # --- SIMULAZIONE DIAGNOSI BAYESIANA (AGGIORNATA) ---
+                print("\n[BAYES] Analisi Probabilistica Avanzata")
                 
-                rischio = self.diagnostica.stima_rischio(macchie=1, giallo=1, crescita_lenta=0)
+                # Supponiamo che il drone veda: Macchie=SI, Giallo=SI
+                sintomo_macchie = 1 
+                sintomo_giallo = 1
                 
-                print(f"        >>> PROBABILITÀ MALATTIA CALCOLATA: {rischio*100:.2f}%")
+                # Passiamo anche i dati ambientali che abbiamo già in input al metodo!
+                # Nota: qui stimo l'umidità basandomi sulla pioggia se non ho il sensore, 
+                # oppure passo un valore fisso se non lo hai nel CSV.
+                # Usiamo 'rain' per pioggia e una stima per umidità.
+                umidita_stimata = 80 if rain > 50 else 40 
                 
-                if rischio > 0.80:
-                    print("        [ALERT] Rischio elevato! Si consiglia trattamento fitosanitario immediato.")
+                print(f"        Osservazioni: Macchie={sintomo_macchie}, Giallo={sintomo_giallo}")
+                print(f"        Contesto: Pioggia={rain}mm, Umidità stimata={umidita_stimata}%")
+                
+                # Ora la funzione restituisce DUE valori
+                prob_malattia, prob_stress = self.diagnostica.stima_rischio(
+                    macchie=sintomo_macchie, 
+                    giallo=sintomo_giallo, 
+                    pioggia_mm=rain, 
+                    umidita_pct=umidita_stimata
+                )
+                
+                print(f"        >>> PROBABILITÀ MALATTIA: {prob_malattia*100:.2f}%")
+                print(f"        >>> PROBABILITÀ STRESS IDRICO: {prob_stress*100:.2f}%")
+                
+                if prob_malattia > 0.75:
+                     print("        [ALERT] Rischio elevato! Trattamento fungicida necessario.")
+                elif prob_stress > 0.70:
+                     print("        [INFO] La pianta ha sete, ma non sembra malata. Irrigare.")
                 else:
-                    print("        [INFO] Rischio moderato. Monitoraggio consigliato.")
+                     print("        [INFO] Situazione incerta o rischio basso.")
             else:
                 print("         [ERROR] Impossibile calcolare un percorso per il drone.")
 

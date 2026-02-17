@@ -87,8 +87,7 @@ valida_raccomandazione(ID, Pianta) :-
 
 % --- VINCOLI SPAZIALI (Per il Pruning di A*) ---
 % Simuliamo una zona dove il drone non può passare
-no_fly_zone('Lotto_B'). 
-no_fly_zone('Lotto_C').
+no_fly_zone('Lotto_B').
 
 % Un nodo è attraversabile solo se NON è in una no_fly_zone
 attraversabile(Nodo) :- \+ no_fly_zone(Nodo).
