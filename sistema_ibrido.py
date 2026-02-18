@@ -122,16 +122,37 @@ def main():
     app = AgroSmartAI()
     app.train_models(DATASET_PATH)
     
-    print("\n--- TEST CASO 1: STANDARD (Successo) ---")
-    # Dati ideali per il Riso (molta acqua, ph neutro)
-    app.reasoning_pipeline(n=80, p=40, k=40, ph=6.5, rain=250, temp=25)
-    
-    print("\n--- TEST CASO 2: CONFLITTO E RECUPERO (Intelligenza Simbolica) ---")
-    # Proviamo a forzare un errore: Terreno ACIDO (pH 4.5) e ARIDO (Rain 300).
-    # ML probabilmente suggerirà 'Jute' o 'Rice' o 'Beans' in base ai nutrienti, ma Prolog dovrebbe bloccare.
-    # Nutrienti bassi -> Kidneybeans? Ma ph acido blocca legumi.
-    # Vediamo se trova un'alternativa.
-    app.reasoning_pipeline(n=20, p=60, k=20, ph=4.5, rain=350, temp=20)
+    print("\n" + "="*50)
+    print(" BENVENUTO IN AGRO-SMART ADVISOR")
+    print(" Sistema Ibrido per l'Agricoltura 4.0")
+    print("="*50)
+
+    while True:
+        print("\n--- NUOVA ANALISI ---")
+        print("Inserisci i parametri del terreno (o scrivi 'esci' per terminare):")
+        
+        try:
+            input_n = input("1. Azoto (N) [es. 90]: ")
+            if input_n.lower() == 'esci': break
+            n = int(input_n)
+            
+            p = int(input("2. Fosforo (P) [es. 40]: "))
+            k = int(input("3. Potassio (K) [es. 40]: "))
+            ph = float(input("4. pH del suolo [es. 6.5]: "))
+            rain = float(input("5. Pioggia (mm) [es. 200]: "))
+            temp = float(input("6. Temperatura (°C) [es. 25]: "))
+            
+            print("-" * 30)
+            app.reasoning_pipeline(n=n, p=p, k=k, ph=ph, rain=rain, temp=temp)
+            print("-" * 30)
+            
+        except ValueError:
+            print("\n[ERRORE] Inserisci solo valori numerici validi! Riprova.")
+        except KeyboardInterrupt:
+            print("\nUscita forzata.")
+            break
+
+    print("\nGrazie per aver usato AgroSmart Advisor.")
 
 if __name__ == "__main__":
     main()
