@@ -1,19 +1,19 @@
-#🌱 AgroSmart Advisor
-Studenti: Aurora Pesare & Fabrizio Stimolo
-Ambito: AI Ibrida per l'Agricoltura 4.0
+# 🌱 AgroSmart Advisor
+- Studenti: Aurora Pesare & Fabrizio Stimolo
+- Ambito: AI Ibrida per l'Agricoltura 4.0
 
-##🚀 Visione del Progetto
+## 🚀 Visione del Progetto
 Agro-Smart Advisor è un ecosistema IA progettato per il supporto decisionale in agricoltura di precisione. 
 Combina l'apprendimento statistico con il ragionamento logico e probabilistico per ottimizzare la scelta delle colture, la diagnosi delle malattie e la navigazione autonoma di droni.
 
-##🧠 Moduli del Sistema
+## 🧠 Moduli del Sistema
 Il sistema si basa sull'integrazione di quattro pilastri dell'IA:
 - Machine Learning (Decision Tree)
 - Knowledge Base (Prolog)
 - Pianificazione
 - Diagnostica (Rete Bayesiana)
 
-##🛠️ Installazione 
+## 🛠️ Installazione 
 
 ### 1. Prerequisiti
 Assicurati di avere installato *SWI-Prolog* sul tuo sistema (necessario per la logica del progetto):
@@ -34,8 +34,9 @@ source venv/bin/activate
 ###4. Installazione Dipendenze
 pip install --upgrade pip
 pip install -r requirements.txt
+```
 
-##💻 Istruzioni per l'Esecuzione
+## 💻 Istruzioni per l'Esecuzione
 Per interagire con il sistema, utilizza i seguenti comandi:
   1. Avvio del Sistema Completo: Esegue il workflow integrato (ML → Prolog → A* → Bayes).
     python sistema_ibrido.py
@@ -44,15 +45,15 @@ Per interagire con il sistema, utilizza i seguenti comandi:
   3. Visualizzazione Architettura ML: Genera il grafico dell'albero di decisione per interpretare le scelte del modello.
     python visualizza_albero.py
   4. Generazione grafici di performance, matrice di confusione e confronto tra i modelli testati (salvati in grafici_per_relazione/):
-    python valutazione_modelli.py
-    python test_finale.py
-    python generazione_grafici_doc.py
-    python generazione_extra_doc.py
+  - python valutazione_modelli.py
+  - python test_finale.py
+  - python generazione_grafici_doc.py
+  - python generazione_extra_doc.py
 
-##📂 Struttura Repository
-sistema_ibrido.py: [Core] Script principale con interfaccia interattiva CLI.
-kb_agricola.pl: Knowledge Base in Prolog con ontologia e regole di dominio.
-valutazione_modelli.py / test_finale.py: Script di training, Cross-Validation (10-Fold) e test hold-out.
-generazione_.py: Script per l'estrazione automatica di grafici e schemi (A, Feature Importance).
-Train_Dataset_Clean.csv / test dataset.csv: Dataset utilizzati per il progetto.
-grafici_per_relazione/: Cartella di output contenente tutti i plot generati dal sistema.
+## 📂 Struttura Repository
+- sistema_ibrido.py: [Core] Script principale con interfaccia interattiva CLI.
+- kb_agricola.pl: Knowledge Base in Prolog con ontologia e regole di dominio.
+- valutazione_modelli.py / test_finale.py: Script di training, Cross-Validation (10-Fold) e test hold-out.
+- generazione_.py: Script per l'estrazione automatica di grafici e schemi (A, Feature Importance).
+- Train_Dataset_Clean.csv / test dataset.csv: Dataset utilizzati per il progetto.
+- grafici_per_relazione/: Cartella di output contenente tutti i plot generati dal sistema.
